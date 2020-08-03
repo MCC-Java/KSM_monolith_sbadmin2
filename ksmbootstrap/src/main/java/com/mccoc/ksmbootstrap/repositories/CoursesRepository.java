@@ -27,7 +27,7 @@ public interface CoursesRepository extends JpaRepository<Courses , String> {
     @Query(value = "SELECT * FROM Courses  INNER JOIN studycards ON Courses .kode=studycards.kodematkul  WHERE studycards.nim = ?1", nativeQuery = true)
     List<Courses> findByNIM(String nim);
     
-    @Query(value = "SELECT (*) FROM Courses WHERE kuota>", nativeQuery = true)
+    @Query(value = "SELECT * FROM Courses WHERE kuota>0", nativeQuery = true)
     public List<Courses> showtostudent();
     
     @Modifying
@@ -48,4 +48,6 @@ public interface CoursesRepository extends JpaRepository<Courses , String> {
     @Query(value = "SELECT SUM(courses.sks) FROM studycards INNER JOIN courses ON (studycards.kodematkul=courses.kode) WHERE studycards.nim=?1", nativeQuery=true)
     int sksnow(String nim);
     
+    @Query(value="SELECT COUNT(*) FROM studycards inner join courses on studycards.kodematkul=courses.kode where courses.nama  =?1 AND studycards.nim=?2", nativeQuery= true)
+    int namamatkul(String nama, String nim);
 }

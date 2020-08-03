@@ -68,4 +68,8 @@ public class RequestService {
         return (List<Request>) request.findrejectmhs(nim);
     }
     
+    public String getkodematkul(Integer kode){
+        return request.findById(kode).get().getKode();
+    }
+    
 }

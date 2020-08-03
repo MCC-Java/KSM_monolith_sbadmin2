@@ -65,6 +65,28 @@ public class CoursesService {
     public int sksnow(String nim){
         return Courses.sksnow(nim);
     }
-         
-
+    
+    public int sks(String kode){
+        return Courses.findById(kode).get().getSks();
+    }
+    
+    public String nama(String kode){
+        return Courses.findById(kode).get().getNama();
+    }
+    
+    public void minkuota(String kode){
+        Courses.findById(kode).get().setKuota(Courses.findById(kode).get().getKuota()-1);
+    }
+    
+    public void addkuota(String kode){
+        Courses.findById(kode).get().setKuota(Courses.findById(kode).get().getKuota()+1);
+    }
+    
+   public boolean checknama(String nama, String nim) {
+        if (Courses.namamatkul(nama, nim) == 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

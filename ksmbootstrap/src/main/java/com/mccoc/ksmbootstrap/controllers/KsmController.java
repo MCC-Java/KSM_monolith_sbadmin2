@@ -41,10 +41,10 @@ public class KsmController {
 
     @Autowired
     AccountsService Accountservices;
-    
+
     @Autowired
     RequestService Requestservices;
-    
+
     @GetMapping("")
     public String awal(Model model) {
         model.addAttribute("account", new Accounts());
@@ -61,35 +61,38 @@ public class KsmController {
     public ModelAndView ksm(Model model, @PathVariable(name = "nim") String nim) {
         ModelAndView mav = new ModelAndView("ksm");
         mav.addObject("matkul", new Courses());
-        mav.addObject("sksnow",Coursesservices.sksnow(nim));
+        mav.addObject("sksnow", Coursesservices.sksnow(nim));
         mav.addObject("matkull", Coursesservices.getbyNIM(nim));
         mav.addObject("mahasiswa", Studentsservices.getbynim(nim));
         model.addAttribute("matkulll", Coursesservices.showtostudent());
         return mav;
     }
-//
-//    @RequestMapping("/delete/{kode}/{nim}")
-//    public String delete(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim) {
-//        Coursesservices.deleteksm(kode, nim);
-//        return "redirect:/ksm/" + nim;
-//    }
-    
+
     @GetMapping("/savereq/{kode}/{nim}/{ket}")
-    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim, @PathVariable(name = "ket") String ket){
+    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim, @PathVariable(name = "ket") String ket) {
         Requestservices.savereq(nim, kode, ket);
-        return "redirect:/ksm/"+nim;
-    }
-    
-    @RequestMapping(value="/save/{nim}/{kode}", method=RequestMethod.GET)
-    public String savemhs(@PathVariable(name = "nimm") String nimm, @PathVariable(name = "kodee") String kodee) {
-        if (Coursesservices.checkksm(kodee, nimm)) {
-        }  else {
-            Coursesservices.savetoksm(nimm,kodee);
-        }
-       return "redirect:/ksm/"+nimm;
+        return "redirect:/requestmhs/" + nim;
     }
 
-    
+    @RequestMapping(value = "/save/{nim}/{kode}", method = RequestMethod.GET)
+    public String savemhs(@PathVariable(name = "nim") String nim, @PathVariable(name = "kode") String kode, Model model) {
+        if (Coursesservices.checkksm(kode, nim)) {
+            model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
+            return "gagal";
+        } else if (Studentsservices.getsks(nim) < (Coursesservices.sks(kode) + Coursesservices.sksnow(nim))) {
+            model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
+            return "gagal";
+        } else if (Coursesservices.checknama(Coursesservices.nama(kode), nim)) {
+            model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
+            return "gagal";
+        }
+        else {
+            Coursesservices.savetoksm(nim, kode);
+            Coursesservices.minkuota(kode);
+            return "redirect:/ksm/" + nim;
+        }
+    }
+
     @GetMapping("/alljadwal/{nim}")
     public String alljadwal(@PathVariable(name = "nim") String nim, Model model) {
         model.addAttribute("matkulll", Coursesservices.showtostudent());
@@ -98,15 +101,14 @@ public class KsmController {
     }
 
     @GetMapping("/requestmhs/{nim}")
-    public String requestmhs(@PathVariable(name = "nim") String nim,Model model) {
-       model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
-       model.addAttribute("active", Requestservices.findactivemhs(nim));
-       model.addAttribute("accept", Requestservices.findaccmhs(nim));
-       model.addAttribute("reject", Requestservices.findrejectmhs(nim));
+    public String requestmhs(@PathVariable(name = "nim") String nim, Model model) {
+        model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
+        model.addAttribute("active", Requestservices.findactivemhs(nim));
+        model.addAttribute("accept", Requestservices.findaccmhs(nim));
+        model.addAttribute("reject", Requestservices.findrejectmhs(nim));
         return "requestmhs";
     }
-    
-    
+
     //mengecek isi dari form login, apakah sesuai di database
     @RequestMapping("/check")
     public String checkLogin(@ModelAttribute(name = "account") Accounts account, Model model) {
@@ -116,12 +118,12 @@ public class KsmController {
 
         if (Accountservices.checkusername(username)) {
             if (password.equalsIgnoreCase(Accountservices.getpass(username))) {
-                String role= Accountservices.getrole(username);
+                String role = Accountservices.getrole(username);
                 if (role.equalsIgnoreCase("student")) {
-                    return "redirect:/ksm/"+username;
-                } else{
+                    return "redirect:/ksm/" + username;
+                } else {
                     return "redirect:/adminpage";
-                } 
+                }
             } else {
                 model.addAttribute("loginError", true);
                 return "index";
@@ -133,7 +135,6 @@ public class KsmController {
     }
 
 //    START ADMIN CONTROLLER
-    
     @GetMapping("/adminpage")
     public String ksm(Model model) {
         model.addAttribute("matkul", new Courses());
@@ -164,41 +165,41 @@ public class KsmController {
 
     @GetMapping("/requestadmin")
     public String reqadmin(Model model) {
-        model.addAttribute("request",Requestservices.getactive());
+        model.addAttribute("request", Requestservices.getactive());
         return "requestadmin";
     }
-    
+
     @GetMapping("/acceptrequest/{kode}/{ket}")
-    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket){
+    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket) {
         Requestservices.accadmin(kode, ket);
+        Coursesservices.addkuota(Requestservices.getkodematkul(Integer.parseInt(kode)));
         return "redirect:/requestadmin";
     }
-    
+
     @GetMapping("/rejectrequest/{kode}/{ket}")
-    public String reject(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket){
+    public String reject(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket) {
         Requestservices.deladmin(kode, ket);
         return "redirect:/requestadmin";
     }
-    
+
     @GetMapping("peserta")
     public String awal() {
         return "peserta";
     }
-    
+
     @RequestMapping("/peserta/{kode}")
     public ModelAndView peserta(Model model, @PathVariable(name = "kode") String kode) {
         ModelAndView mav = new ModelAndView("peserta");
         mav.addObject("peserta", new Students());
-        mav.addObject("kode",kode);
+        mav.addObject("kode", kode);
         mav.addObject("pesertaa", Studentsservices.lihatpeserta(kode));
         return mav;
     }
-    
-    
+
     @GetMapping("/history")
     public String history(Model model) {
-        model.addAttribute("requestacc",Requestservices.getaccept());
-        model.addAttribute("requestreject",Requestservices.getreject());
+        model.addAttribute("requestacc", Requestservices.getaccept());
+        model.addAttribute("requestreject", Requestservices.getreject());
         return "history";
     }
 }

@@ -5,7 +5,7 @@
  */
 package com.mccoc.ksmbootstrap.services;
 
-import com.mccoc.ksmbootstrap.entities.Students ;
+import com.mccoc.ksmbootstrap.entities.Students;
 import com.mccoc.ksmbootstrap.repositories.StudentsRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,22 +19,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class StudentsService {
-    
+
     @Autowired
     StudentsRepository mhs;
-   
-    public String checkname(String nim){
+
+    public String checkname(String nim) {
         return mhs.findById(nim).get().getNama();
     }
-    
-    public Students getbynim(String nim){
+
+    public Students getbynim(String nim) {
         return mhs.findById(nim).get();
     }
-    
-    public List<Students> lihatpeserta(String kode){
+
+    public List<Students> lihatpeserta(String kode) {
         return mhs.lihatpeserta(kode);
     }
-    
-      
-    
+
+    public int getsks(String nim) {
+        return Integer.parseInt(mhs.findById(nim).get().getBebansks());
+    }
+
 }
