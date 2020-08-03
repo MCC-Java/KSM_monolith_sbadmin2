@@ -10,6 +10,7 @@ import java.util.Collection;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -27,18 +28,19 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author JESSI
  */
 @Entity
-@Table(name = "matkul")
+@Table(name = "courses")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Matkul.findAll", query = "SELECT m FROM Matkul m")
-    , @NamedQuery(name = "Matkul.findByKode", query = "SELECT m FROM Matkul m WHERE m.kode = :kode")
-    , @NamedQuery(name = "Matkul.findByRuang", query = "SELECT m FROM Matkul m WHERE m.ruang = :ruang")
-    , @NamedQuery(name = "Matkul.findByHari", query = "SELECT m FROM Matkul m WHERE m.hari = :hari")
-    , @NamedQuery(name = "Matkul.findByJam", query = "SELECT m FROM Matkul m WHERE m.jam = :jam")
-    , @NamedQuery(name = "Matkul.findByNama", query = "SELECT m FROM Matkul m WHERE m.nama = :nama")
-    , @NamedQuery(name = "Matkul.findBySks", query = "SELECT m FROM Matkul m WHERE m.sks = :sks")
-    , @NamedQuery(name = "Matkul.findByDosen", query = "SELECT m FROM Matkul m WHERE m.dosen = :dosen")})
-public class Matkul implements Serializable {
+    @NamedQuery(name = "Courses.findAll", query = "SELECT c FROM Courses c")
+    , @NamedQuery(name = "Courses.findByKode", query = "SELECT c FROM Courses c WHERE c.kode = :kode")
+    , @NamedQuery(name = "Courses.findByRuang", query = "SELECT c FROM Courses c WHERE c.ruang = :ruang")
+    , @NamedQuery(name = "Courses.findByHari", query = "SELECT c FROM Courses c WHERE c.hari = :hari")
+    , @NamedQuery(name = "Courses.findByJam", query = "SELECT c FROM Courses c WHERE c.jam = :jam")
+    , @NamedQuery(name = "Courses.findByNama", query = "SELECT c FROM Courses c WHERE c.nama = :nama")
+    , @NamedQuery(name = "Courses.findBySks", query = "SELECT c FROM Courses c WHERE c.sks = :sks")
+    , @NamedQuery(name = "Courses.findByDosen", query = "SELECT c FROM Courses c WHERE c.dosen = :dosen")
+    , @NamedQuery(name = "Courses.findByKuota", query = "SELECT c FROM Courses c WHERE c.kuota = :kuota")})
+public class Courses implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -76,20 +78,24 @@ public class Matkul implements Serializable {
     @Size(min = 1, max = 45)
     @Column(name = "dosen")
     private String dosen;
-    @JoinTable(name = "kartustudi", joinColumns = {
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "kuota")
+    private int kuota;
+    @JoinTable(name = "studycards", joinColumns = {
         @JoinColumn(name = "kodematkul", referencedColumnName = "kode")}, inverseJoinColumns = {
         @JoinColumn(name = "nim", referencedColumnName = "nim")})
-    @ManyToMany
-    private Collection<Datamhs> datamhsCollection;
+    @ManyToMany(fetch = FetchType.LAZY)
+    private Collection<Students> studentsCollection;
 
-    public Matkul() {
+    public Courses() {
     }
 
-    public Matkul(String kode) {
+    public Courses(String kode) {
         this.kode = kode;
     }
 
-    public Matkul(String kode, String ruang, String hari, String jam, String nama, int sks, String dosen) {
+    public Courses(String kode, String ruang, String hari, String jam, String nama, int sks, String dosen, int kuota) {
         this.kode = kode;
         this.ruang = ruang;
         this.hari = hari;
@@ -97,6 +103,7 @@ public class Matkul implements Serializable {
         this.nama = nama;
         this.sks = sks;
         this.dosen = dosen;
+        this.kuota = kuota;
     }
 
     public String getKode() {
@@ -155,13 +162,21 @@ public class Matkul implements Serializable {
         this.dosen = dosen;
     }
 
-    @XmlTransient
-    public Collection<Datamhs> getDatamhsCollection() {
-        return datamhsCollection;
+    public int getKuota() {
+        return kuota;
     }
 
-    public void setDatamhsCollection(Collection<Datamhs> datamhsCollection) {
-        this.datamhsCollection = datamhsCollection;
+    public void setKuota(int kuota) {
+        this.kuota = kuota;
+    }
+
+    @XmlTransient
+    public Collection<Students> getStudentsCollection() {
+        return studentsCollection;
+    }
+
+    public void setStudentsCollection(Collection<Students> studentsCollection) {
+        this.studentsCollection = studentsCollection;
     }
 
     @Override
@@ -174,10 +189,10 @@ public class Matkul implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Matkul)) {
+        if (!(object instanceof Courses)) {
             return false;
         }
-        Matkul other = (Matkul) object;
+        Courses other = (Courses) object;
         if ((this.kode == null && other.kode != null) || (this.kode != null && !this.kode.equals(other.kode))) {
             return false;
         }
@@ -186,7 +201,7 @@ public class Matkul implements Serializable {
 
     @Override
     public String toString() {
-        return "com.mccoc.ksmbootstrap.entities.Matkul[ kode=" + kode + " ]";
+        return "com.mccoc.ksmbootstrap.entities.Courses[ kode=" + kode + " ]";
     }
     
 }

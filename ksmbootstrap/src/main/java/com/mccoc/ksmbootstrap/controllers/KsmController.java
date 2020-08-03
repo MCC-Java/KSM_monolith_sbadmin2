@@ -5,10 +5,14 @@
  */
 package com.mccoc.ksmbootstrap.controllers;
 
-import com.mccoc.ksmbootstrap.entities.Datamhs;
-import com.mccoc.ksmbootstrap.entities.Matkul;
-import com.mccoc.ksmbootstrap.services.DatamhsService;
-import com.mccoc.ksmbootstrap.services.MatkulService;
+import com.mccoc.ksmbootstrap.entities.Students;
+import com.mccoc.ksmbootstrap.entities.Courses;
+import com.mccoc.ksmbootstrap.entities.Accounts;
+import com.mccoc.ksmbootstrap.entities.Request;
+import com.mccoc.ksmbootstrap.services.AccountsService;
+import com.mccoc.ksmbootstrap.services.StudentsService;
+import com.mccoc.ksmbootstrap.services.CoursesService;
+import com.mccoc.ksmbootstrap.services.RequestService;
 import java.util.List;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,75 +34,94 @@ import org.springframework.web.servlet.ModelAndView;
 public class KsmController {
 
     @Autowired
-    DatamhsService datamhsservices;
+    StudentsService Studentsservices;
 
     @Autowired
-    MatkulService matkulservices;
+    CoursesService Coursesservices;
 
+    @Autowired
+    AccountsService Accountservices;
+    
+    @Autowired
+    RequestService Requestservices;
+    
     @GetMapping("")
     public String awal(Model model) {
-        model.addAttribute("datamhs", new Datamhs());
+        model.addAttribute("account", new Accounts());
         return "index";
     }
-    
+
     @GetMapping("/index")
     public String login(Model model) {
-        model.addAttribute("datamhs", new Datamhs());
+        model.addAttribute("account", new Accounts());
         return "index";
     }
-    
+
     @RequestMapping("/ksm/{nim}")
     public ModelAndView ksm(Model model, @PathVariable(name = "nim") String nim) {
         ModelAndView mav = new ModelAndView("ksm");
-        mav.addObject("matkul", new Matkul());
-        mav.addObject("matkuls", matkulservices.getbyNIM(nim));
-        mav.addObject("mahasiswa", datamhsservices.getbynim(nim));
-        model.addAttribute("matkulll", matkulservices.getAll());
+        mav.addObject("matkul", new Courses());
+        mav.addObject("sksnow",Coursesservices.sksnow(nim));
+        mav.addObject("matkull", Coursesservices.getbyNIM(nim));
+        mav.addObject("mahasiswa", Studentsservices.getbynim(nim));
+        model.addAttribute("matkulll", Coursesservices.showtostudent());
         return mav;
+    }
+//
+//    @RequestMapping("/delete/{kode}/{nim}")
+//    public String delete(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim) {
+//        Coursesservices.deleteksm(kode, nim);
+//        return "redirect:/ksm/" + nim;
+//    }
+    
+    @GetMapping("/savereq/{kode}/{nim}/{ket}")
+    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim, @PathVariable(name = "ket") String ket){
+        Requestservices.savereq(nim, kode, ket);
+        return "redirect:/ksm/"+nim;
+    }
+    
+    @RequestMapping(value="/save/{nim}/{kode}", method=RequestMethod.GET)
+    public String savemhs(@PathVariable(name = "nimm") String nimm, @PathVariable(name = "kodee") String kodee) {
+        if (Coursesservices.checkksm(kodee, nimm)) {
+        }  else {
+            Coursesservices.savetoksm(nimm,kodee);
+        }
+       return "redirect:/ksm/"+nimm;
     }
 
     
-
-    @RequestMapping("/delete/{kode}/{nim}")
-    public String delete(@PathVariable(name = "kode") String kode, @PathVariable(name = "nim") String nim) {
-        matkulservices.deleteksm(kode, nim);
-        return "redirect:/ksm/" + nim;
-    }
-
-    @PostMapping("/savedata/{nim}")
-    public String save(@ModelAttribute(value = "kode") Matkul matkul, @PathVariable(name = "nim") String nim, Model model) {
-        if (matkulservices.checkksm(matkul.getKode(), nim)) {
-            model.addAttribute("error", true);
-        } else if (matkulservices.checkkode(matkul.getKode()) == false) {
-            model.addAttribute("error", true);
-        } else {
-            matkulservices.savetoksm(matkul.getKode(), nim);
-        }
-        return "redirect:/ksm/" + nim;
-    }
-
     @GetMapping("/alljadwal/{nim}")
     public String alljadwal(@PathVariable(name = "nim") String nim, Model model) {
-        model.addAttribute("matkulll", matkulservices.getAll());
-        model.addAttribute("mahasiswa", datamhsservices.getbynim(nim));
+        model.addAttribute("matkulll", Coursesservices.showtostudent());
+        model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
         return "jadwal";
     }
 
+    @GetMapping("/requestmhs/{nim}")
+    public String requestmhs(@PathVariable(name = "nim") String nim,Model model) {
+       model.addAttribute("mahasiswa", Studentsservices.getbynim(nim));
+       model.addAttribute("active", Requestservices.findactivemhs(nim));
+       model.addAttribute("accept", Requestservices.findaccmhs(nim));
+       model.addAttribute("reject", Requestservices.findrejectmhs(nim));
+        return "requestmhs";
+    }
+    
+    
     //mengecek isi dari form login, apakah sesuai di database
     @RequestMapping("/check")
-    public String checkLogin(@ModelAttribute(name = "datamhs") Datamhs datamhs, Model model) {
+    public String checkLogin(@ModelAttribute(name = "account") Accounts account, Model model) {
 
-        String nim = datamhs.getNim();
-        String password = datamhs.getPassword();
+        String username = account.getUsername();
+        String password = account.getPassword();
 
-        if ((nim.equalsIgnoreCase("admin")) && (password.equalsIgnoreCase("admin"))) {
-            return "redirect:/adminpage";
-        }
-
-        if (datamhsservices.checknim(nim)) {
-            if (password.equalsIgnoreCase(datamhsservices.checkpass(nim))) {
-                model.addAttribute("name", datamhsservices.checkname(nim));
-                return "redirect:/ksm/" + nim;
+        if (Accountservices.checkusername(username)) {
+            if (password.equalsIgnoreCase(Accountservices.getpass(username))) {
+                String role= Accountservices.getrole(username);
+                if (role.equalsIgnoreCase("student")) {
+                    return "redirect:/ksm/"+username;
+                } else{
+                    return "redirect:/adminpage";
+                } 
             } else {
                 model.addAttribute("loginError", true);
                 return "index";
@@ -109,32 +132,73 @@ public class KsmController {
         }
     }
 
+//    START ADMIN CONTROLLER
+    
     @GetMapping("/adminpage")
     public String ksm(Model model) {
-        model.addAttribute("matkul", new Matkul());
-        model.addAttribute("matkulll", matkulservices.getAll());
+        model.addAttribute("matkul", new Courses());
+        model.addAttribute("matkulll", Coursesservices.getAll());
         return "adminpage";
     }
 
     @GetMapping("/delete/{kode}")
     public String delete(@PathVariable(name = "kode") String kode) {
-        matkulservices.deletematkul(kode);
+        Coursesservices.deleteCourses(kode);
         return "redirect:/adminpage";
     }
 
     @PostMapping("/savematkul")
-    public String save(@Valid Matkul matkul) {
-         matkul.setKode(matkul.getKode().toUpperCase());
-         matkulservices.savematkul(matkul);
+    public String save(@Valid Courses Courses) {
+        Courses.setKode(Courses.getKode().toUpperCase());
+        Coursesservices.saveCourses(Courses);
         return "redirect:/adminpage";
     }
 
     @RequestMapping("/updatematkul/{kode}")
-    public String update(@Valid Matkul matkul, Model model,@PathVariable(name = "kode") String kode) {
-        model.addAttribute("matkul", new Matkul(kode));
-        model.addAttribute("matkulll", matkulservices.getAll());
-        matkulservices.savematkul(matkul);
+    public String update(@Valid Courses Courses, Model model, @PathVariable(name = "kode") String kode) {
+        model.addAttribute("Courses", new Courses(kode));
+        model.addAttribute("Coursesll", Coursesservices.getAll());
+        Coursesservices.saveCourses(Courses);
         return "redirect:/adminpage";
     }
 
+    @GetMapping("/requestadmin")
+    public String reqadmin(Model model) {
+        model.addAttribute("request",Requestservices.getactive());
+        return "requestadmin";
+    }
+    
+    @GetMapping("/acceptrequest/{kode}/{ket}")
+    public String accept(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket){
+        Requestservices.accadmin(kode, ket);
+        return "redirect:/requestadmin";
+    }
+    
+    @GetMapping("/rejectrequest/{kode}/{ket}")
+    public String reject(@PathVariable(name = "kode") String kode, @PathVariable(name = "ket") String ket){
+        Requestservices.deladmin(kode, ket);
+        return "redirect:/requestadmin";
+    }
+    
+    @GetMapping("peserta")
+    public String awal() {
+        return "peserta";
+    }
+    
+    @RequestMapping("/peserta/{kode}")
+    public ModelAndView peserta(Model model, @PathVariable(name = "kode") String kode) {
+        ModelAndView mav = new ModelAndView("peserta");
+        mav.addObject("peserta", new Students());
+        mav.addObject("kode",kode);
+        mav.addObject("pesertaa", Studentsservices.lihatpeserta(kode));
+        return mav;
+    }
+    
+    
+    @GetMapping("/history")
+    public String history(Model model) {
+        model.addAttribute("requestacc",Requestservices.getaccept());
+        model.addAttribute("requestreject",Requestservices.getreject());
+        return "history";
+    }
 }

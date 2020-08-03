@@ -5,36 +5,36 @@
  */
 package com.mccoc.ksmbootstrap.services;
 
-import com.mccoc.ksmbootstrap.entities.Datamhs;
-import com.mccoc.ksmbootstrap.repositories.DatamhsRepository;
+import com.mccoc.ksmbootstrap.entities.Students ;
+import com.mccoc.ksmbootstrap.repositories.StudentsRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author JESSI
  */
 @Service
-public class DatamhsService {
+@Transactional
+public class StudentsService {
     
     @Autowired
-    DatamhsRepository mhs;
-    
-    public String checkpass(String nim){
-        return mhs.findById(nim).get().getPassword();
-    }
-    
-    public boolean checknim(String nim){
-        return mhs.existsById(nim);
-    }
-    
+    StudentsRepository mhs;
+   
     public String checkname(String nim){
         return mhs.findById(nim).get().getNama();
     }
     
-    public Datamhs getbynim(String nim){
+    public Students getbynim(String nim){
         return mhs.findById(nim).get();
     }
+    
+    public List<Students> lihatpeserta(String kode){
+        return mhs.lihatpeserta(kode);
+    }
+    
+      
     
 }

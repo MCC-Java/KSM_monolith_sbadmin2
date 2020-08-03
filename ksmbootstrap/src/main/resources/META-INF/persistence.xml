@@ -4,6 +4,11 @@
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>com.mccoc.ksmbootstrap.entities.Matkul</class>
     <class>com.mccoc.ksmbootstrap.entities.Datamhs</class>
+    <class>com.mccoc.ksmbootstrap.entities.Status</class>
+    <class>com.mccoc.ksmbootstrap.entities.Courses</class>
+    <class>com.mccoc.ksmbootstrap.entities.Accounts</class>
+    <class>com.mccoc.ksmbootstrap.entities.Students</class>
+    <class>com.mccoc.ksmbootstrap.entities.Request</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3310/mahasiswa?zeroDateTimeBehavior=convertToNull"/>
       <property name="javax.persistence.jdbc.user" value="root"/>

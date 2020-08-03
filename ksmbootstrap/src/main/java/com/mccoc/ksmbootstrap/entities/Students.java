@@ -8,12 +8,17 @@ package com.mccoc.ksmbootstrap.entities;
 import java.io.Serializable;
 import java.util.Collection;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -25,16 +30,16 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author JESSI
  */
 @Entity
-@Table(name = "datamhs")
+@Table(name = "students")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Datamhs.findAll", query = "SELECT d FROM Datamhs d")
-    , @NamedQuery(name = "Datamhs.findByNim", query = "SELECT d FROM Datamhs d WHERE d.nim = :nim")
-    , @NamedQuery(name = "Datamhs.findByNama", query = "SELECT d FROM Datamhs d WHERE d.nama = :nama")
-    , @NamedQuery(name = "Datamhs.findByPassword", query = "SELECT d FROM Datamhs d WHERE d.password = :password")
-    , @NamedQuery(name = "Datamhs.findByFakultas", query = "SELECT d FROM Datamhs d WHERE d.fakultas = :fakultas")
-    , @NamedQuery(name = "Datamhs.findByProgdi", query = "SELECT d FROM Datamhs d WHERE d.progdi = :progdi")})
-public class Datamhs implements Serializable {
+    @NamedQuery(name = "Students.findAll", query = "SELECT s FROM Students s")
+    , @NamedQuery(name = "Students.findByNim", query = "SELECT s FROM Students s WHERE s.nim = :nim")
+    , @NamedQuery(name = "Students.findByNama", query = "SELECT s FROM Students s WHERE s.nama = :nama")
+    , @NamedQuery(name = "Students.findByFakultas", query = "SELECT s FROM Students s WHERE s.fakultas = :fakultas")
+    , @NamedQuery(name = "Students.findByProgdi", query = "SELECT s FROM Students s WHERE s.progdi = :progdi")
+    , @NamedQuery(name = "Students.findByBebansks", query = "SELECT s FROM Students s WHERE s.bebansks = :bebansks")})
+public class Students implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -51,11 +56,6 @@ public class Datamhs implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 45)
-    @Column(name = "password")
-    private String password;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
     @Column(name = "fakultas")
     private String fakultas;
     @Basic(optional = false)
@@ -63,22 +63,32 @@ public class Datamhs implements Serializable {
     @Size(min = 1, max = 45)
     @Column(name = "progdi")
     private String progdi;
-    @ManyToMany(mappedBy = "datamhsCollection")
-    private Collection<Matkul> matkulCollection;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 45)
+    @Column(name = "bebansks")
+    private String bebansks;
+    @ManyToMany(mappedBy = "studentsCollection", fetch = FetchType.LAZY)
+    private Collection<Courses> coursesCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "nim", fetch = FetchType.LAZY)
+    private Collection<Request> requestCollection;
+    @JoinColumn(name = "nim", referencedColumnName = "username", insertable = false, updatable = false)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    private Accounts accounts;
 
-    public Datamhs() {
+    public Students() {
     }
 
-    public Datamhs(String nim) {
+    public Students(String nim) {
         this.nim = nim;
     }
 
-    public Datamhs(String nim, String nama, String password, String fakultas, String progdi) {
+    public Students(String nim, String nama, String fakultas, String progdi, String bebansks) {
         this.nim = nim;
         this.nama = nama;
-        this.password = password;
         this.fakultas = fakultas;
         this.progdi = progdi;
+        this.bebansks = bebansks;
     }
 
     public String getNim() {
@@ -97,14 +107,6 @@ public class Datamhs implements Serializable {
         this.nama = nama;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getFakultas() {
         return fakultas;
     }
@@ -121,13 +123,38 @@ public class Datamhs implements Serializable {
         this.progdi = progdi;
     }
 
-    @XmlTransient
-    public Collection<Matkul> getMatkulCollection() {
-        return matkulCollection;
+    public String getBebansks() {
+        return bebansks;
     }
 
-    public void setMatkulCollection(Collection<Matkul> matkulCollection) {
-        this.matkulCollection = matkulCollection;
+    public void setBebansks(String bebansks) {
+        this.bebansks = bebansks;
+    }
+
+    @XmlTransient
+    public Collection<Courses> getCoursesCollection() {
+        return coursesCollection;
+    }
+
+    public void setCoursesCollection(Collection<Courses> coursesCollection) {
+        this.coursesCollection = coursesCollection;
+    }
+
+    @XmlTransient
+    public Collection<Request> getRequestCollection() {
+        return requestCollection;
+    }
+
+    public void setRequestCollection(Collection<Request> requestCollection) {
+        this.requestCollection = requestCollection;
+    }
+
+    public Accounts getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(Accounts accounts) {
+        this.accounts = accounts;
     }
 
     @Override
@@ -140,10 +167,10 @@ public class Datamhs implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Datamhs)) {
+        if (!(object instanceof Students)) {
             return false;
         }
-        Datamhs other = (Datamhs) object;
+        Students other = (Students) object;
         if ((this.nim == null && other.nim != null) || (this.nim != null && !this.nim.equals(other.nim))) {
             return false;
         }
@@ -152,7 +179,7 @@ public class Datamhs implements Serializable {
 
     @Override
     public String toString() {
-        return "com.mccoc.ksmbootstrap.entities.Datamhs[ nim=" + nim + " ]";
+        return "com.mccoc.ksmbootstrap.entities.Students[ nim=" + nim + " ]";
     }
     
 }
